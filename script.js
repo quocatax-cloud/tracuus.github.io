@@ -47,6 +47,8 @@ function buildHeader(file) {
         thead.innerHTML = "<th>Mã</th><th>Phường / Xã</th><th>Tỉnh / Huyện</th>";
     else if (file === "kbnn.txt")
         thead.innerHTML = "<th>Tên Kho bạc</th><th>Mã</th><th>Tỉnh</th>";
+    else if (file === "faq.txt") // Thêm tiêu đề cho file mới
+        thead.innerHTML = "<th style='width: 25%'>Câu hỏi</th><th style='width: 55%'>Hướng dẫn xử lý</th><th style='width: 20%'>Hình ảnh</th>";
     else
         thead.innerHTML = "<th>Mã</th><th>Ngân hàng</th>";
 }
@@ -173,35 +175,48 @@ input.addEventListener("input", () => {
     const keys = normalize(keyword).split(" ");
 
     results.forEach(obj => {
+    // Tách cột bằng Tab (\t) để không bị lỗi khi nội dung có dấu cách
+    const cols = obj.line.split('\t'); 
+    const tr = document.createElement("tr");
 
-        const cols = obj.line.split(/\t| {2,}/);
-        const tr = document.createElement("tr");
+    cols.forEach((col, index) => {
+        const td = document.createElement("td");
+        let html = col;
 
-        cols.forEach(col => {
-
-            let html = col;
-
+        // Chỉ highlight nếu không phải là cột ảnh
+        if (!(currentFile === "faq.txt" && index === 2)) {
             keys.forEach(k => {
                 if (k.length > 1) {
                     const reg = new RegExp(`(${k})`, "gi");
                     html = html.replace(reg, "<mark>$1</mark>");
                 }
             });
+        }
 
-            const td = document.createElement("td");
+        // Xử lý riêng hiển thị ảnh cho cột thứ 3 của file faq.txt
+        if (currentFile === "faq.txt" && index === 2) {
+            // Giả sử bạn để ảnh trong thư mục data/images/
+            td.innerHTML = `<img src="data/images/${col}" style="width:100%; max-width:150px; border-radius:4px; cursor:pointer" onclick="window.open(this.src)">`;
+        } else {
             td.innerHTML = html;
-            tr.appendChild(td);
-        });
+        }
 
-        tr.onclick = () => {
+        tr.appendChild(td);
+    });
+
+    // Sửa lại logic click copy một chút cho hợp lý với FAQ
+    tr.onclick = () => {
+        if (currentFile === "faq.txt") {
+            navigator.clipboard.writeText(cols[1].replace(/<br>/g, '\n')); // Copy nội dung hướng dẫn
+            alert("Đã copy hướng dẫn xử lý!");
+        } else {
             navigator.clipboard.writeText(cols[0]);
             alert("Đã copy: " + cols[0]);
-        };
+        }
+    };
 
-        tbody.appendChild(tr);
-    });
+    tbody.appendChild(tr);
 });
-
 /* =====================
    TAB SWITCH
 ===================== */
