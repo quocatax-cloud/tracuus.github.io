@@ -1,0 +1,28 @@
+Cách xóa lịch sử trình duyệt Firefox (khắc phục máy chậm)	1. Mở Menu Firefox (3 gạch) -> Options (Tùy chọn). <br> 2. Chọn Privacy & Security. <br> 3. Tại Cookies and Site Data, nhấn Clear Data... -> Clear. <br> 4. Tại History, chọn Clear History... -> Chọn Everything -> Tích hết các mục -> Clear Now.	faq01.png
+Cách cập nhật Firefox lên phiên bản mới nhất	1. Mở Menu Firefox -> Help (?) -> About Firefox. <br> 2. Chờ trình duyệt tự tải bản mới -> Nhấn Restart to update Firefox.	faq02.png
+Cách cập nhật mã, tên đơn vị QHNS, ĐBHC trong DVC	Đơn vị gửi hồ sơ về Bộ phận một cửa cấp mã số của Sở Tài chính để thực hiện trên hệ thống cấp mã. Dữ liệu sẽ tự động đồng bộ về hệ thống DVC của Kho bạc sau khi được cập nhật.	faq03.png
+Cách thay đổi Chứng thư số (CTS) của Chủ tài khoản (CTK)	1. KTV vào 'Đăng ký thay đổi/bổ sung' -> Chọn hồ sơ. <br> 2. Tại mục Thành viên, tìm CTK -> Sửa -> Cắm USB Token mới -> Lấy thông tin CTS -> Ghi. <br> 3. KTV gửi phê duyệt. <br> 4. CTK ra trang chủ, vào 'Tra cứu tình trạng hồ sơ đăng ký' -> Nhập mã hồ sơ -> Ký số xác nhận bên ngoài.	faq04.png
+Cách thay đổi CTS của Kế toán trưởng (KTT)	Thực hiện như thay đổi CTS của CTK (Bước 1-3). Tại Bước 4: CTK đăng nhập vào hệ thống bằng tài khoản của mình để ký số phê duyệt cho KTT.	faq05.png
+Cách thay đổi CTK cũ sang CTK mới	1. KTV vào hồ sơ thay đổi. <br> 2. CTK cũ: Chọn trạng thái 'Ngừng sử dụng'. <br> 3. CTK mới: Nhấn 'Thêm mới' -> Nhập thông tin (Họ tên, CMND, Email) -> Nạp Serial CTS mới. <br> 4. CTK mới tra cứu hồ sơ từ trang chủ (không đăng nhập) để ký số xác nhận.	faq06.png
+Cách thay đổi KTT cũ sang KTT mới	Tương tự thay đổi CTK. Nếu KTT kiêm KTV thì khi thêm mới phải tích cả 2 vai trò 'Nhân viên' và 'Kế toán trưởng'. CTK đăng nhập vào để ký phê duyệt.	faq07.png
+Hồ sơ 'Chờ hoàn thiện' không chuyển sang 'Chờ phê duyệt'	Lỗi do các thành viên có CTS chưa nhấn nút 'Ghi' sau khi nạp thông tin CTS. Yêu cầu KTV, KTT, CTK kiểm tra lại và nhấn 'Ghi' để hệ thống ghi nhận Serial.	faq08.png
+KTV nhập chứng từ xong không thấy KTT để chọn	Do hồ sơ đăng ký cũ chưa tích chọn vai trò 'Kế toán trưởng' cho thành viên đó. Cần lập hồ sơ thay đổi/bổ sung để tích bổ sung chức danh.	faq09.png
+Hồ sơ 'Chờ phê duyệt' không thấy nút 'Ký số' ở bước 4	Đối với hồ sơ thay đổi thành viên, nút ký không nằm bên trong. Người dùng phải ra trang chủ -> 'Tra cứu tình trạng hồ sơ đăng ký sử dụng' -> Nhập mã hồ sơ để ký bên ngoài.	faq10.png
+Nhập sai email thành viên nên không nhận được mật khẩu	KTV lập hồ sơ thay đổi để sửa lại email. Sau khi Kho bạc duyệt, thành viên dùng chức năng 'Quên mật khẩu' trên trang chủ để nhận lại thông tin qua email mới.	faq11.png
+Không tải được file báo nợ của các tháng trước	Hệ thống ưu tiên lưu file 7 ngày gần nhất. Nếu cần file cũ, đơn vị liên hệ Kho bạc nơi giao dịch để cán bộ hỗ trợ in/xuất file từ hệ thống nội bộ.	faq12.png
+Cách xóa hồ sơ trên DVC	Chỉ xóa được khi ở trạng thái 'Mới tạo' hoặc 'KTT từ chối'. Vào tra cứu hồ sơ -> Chọn hồ sơ -> Kéo xuống cuối nhấn 'Xóa'.	faq13.png
+Lỗi 'Không tìm thấy thông tin chứng thư số' khi ký	1. Kiểm tra USB Token đã cắm chưa. <br> 2. Kiểm tra Serial thực tế trên Token và Serial đăng ký có khớp không. Nếu khác phải làm hồ sơ thay đổi CTS.	faq14.png
+Lỗi 'Phần mềm ký số chưa được bật'	1. Bật phần mềm ký số (VNPTSign/KBNN) dưới thanh Taskbar. <br> 2. Cấu hình Firefox: about:config -> tìm 'mixed' -> chuyển sang 'false' -> Khởi động lại.	faq15.png
+Lỗi 'Hệ thống ký số xử lý không thành công...'	Gỡ driver cũ, cài lại driver USB Token bản mới nhất. Khởi động lại máy. Đảm bảo không có phần mềm ký số khác tranh chấp.	faq16.png
+Lỗi 'Kích hoạt CTS không thành công' (Token VNPT)	Tải file cấu hình test.p12 -> Import vào máy với mật khẩu '1' -> Quay lại DVC lấy thông tin CTS.	faq17.png
+Không nhận được mail thông báo từ Kho bạc	1. Mail chứng từ gửi vào mail chung đơn vị (Bước 1). <br> 2. Mail mật khẩu gửi vào mail cá nhân. <br> 3. Hồ sơ giao nhận không gửi mail, phải chủ động tra cứu.	faq18.png
+Lỗi 'java.io.IOException... not found' khi phê duyệt	1. Kiểm tra file scan (PDF, < 3.5MB, tên không dấu). <br> 2. Nếu hồ sơ quá lâu chưa ký, hãy xóa và tạo lại hồ sơ mới.	faq19.png
+Lỗi 'Bạn không có quyền sử dụng chức năng này'	Do khi đăng ký chưa tích chọn đủ dịch vụ (Giao nhận/Thanh toán). Cần làm hồ sơ bổ sung tại Bước 1 để tích chọn thêm dịch vụ.	faq20.png
+Lỗi 'Không tìm thấy thông tin thành viên thực hiện ký số'	Do KTV chưa cập nhật mã dự án/tài khoản ở Bước 2 hoặc nạp sai Serial CTS ở Bước 3. Kiểm tra lại danh sách thành viên và token tương ứng.	faq21.png
+Cách ngừng một mã dự án để tách đơn vị	1. Tất toán số dư tại Kho bạc. <br> 2. Lập hồ sơ thay đổi trên DVC -> Bước 2 chọn mã dự án -> Chọn 'Ngừng sử dụng'.	faq22.png
+Cách tải chứng từ offline từ phần mềm kế toán khác	Sử dụng chức năng 'Offline' trên DVC. Lưu ý file XML phải tuân thủ đúng cấu trúc chuẩn của KBNN do nhà cung cấp phần mềm thiết lập.	faq23.png
+Lỗi 'class java.lang.ClassCastException null' khi thêm hồ sơ	Do chọn mẫu chứng từ cũ hết hiệu lực. Cần chọn đúng mẫu theo Nghị định 11/2020/NĐ-CP (bỏ các mẫu C4-09/KB, C3-04/NS cũ).	faq24.png
+Lỗi 'Số serial đã tồn tại trong hệ thống' ở bước 3	Lỗi do nhấn 'Nhập mới'. Cách đúng: Nhấn kính lúp tại ô Họ tên -> Tìm thành viên cũ đã có -> Nhấn 'Sửa' để cập nhật thông tin.	faq25.png
+Lỗi 'Chứng thư số đã bị thu hồi. Trạng thái Revoked'	Do Token bị khóa hoặc hết hạn online. Liên hệ nhà cung cấp (VNPT, Viettel...) để kiểm tra hiệu lực CTS.	faq26.png
+Cách gửi yêu cầu hỗ trợ DVC qua Email	Gửi mail đến hotrocntt@vst.gov.vn. Tiêu đề: DVC_<TÊN TỈNH/SHKB>_<Trích yếu lỗi>. Nội dung kèm mã đơn vị, số điện thoại và ảnh chụp lỗi.	faq27.png
+Tài liệu hướng dẫn sử dụng DVC mới nhất	Truy cập https://vst.mof.gov.vn -> Dịch vụ công -> Hướng dẫn sử dụng để tải bản 4.0.	faq28.png
