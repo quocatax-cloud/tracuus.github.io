@@ -8,9 +8,10 @@ const thead = document.getElementById("table-head");
 const tabs = document.querySelectorAll(".tab");
 
 /* =====================
-   CHUẨN HÓA TIẾNG VIỆT
+   1. CHUẨN HÓA TIẾNG VIỆT (Hỗ trợ tìm kiếm không dấu)
 ===================== */
 function normalize(str) {
+    if (!str) return "";
     return str
         .toLowerCase()
         .normalize("NFD")
@@ -22,209 +23,120 @@ function normalize(str) {
 }
 
 /* =====================
-   LOAD FILE TXT
+   2. LOAD FILE TXT (Thêm tham số chống Cache cho Mobile)
 ===================== */
 async function loadFile(file) {
     input.value = "";
-    tbody.innerHTML = "";
+    tbody.innerHTML = "<tr><td colspan='3' style='text-align:center'>Đang tải dữ liệu...</td></tr>";
     rawData = [];
 
-    const res = await fetch("data/" + file);
-    const text = await res.text();
+    try {
+        // Thêm ?v=... để điện thoại luôn tải file mới nhất từ GitHub
+        const res = await fetch(`data/${file}?v=${new Date().getTime()}`);
+        if (!res.ok) throw new Error("Không tìm thấy file");
+        const text = await res.text();
 
-    rawData = text.split(/\r?\n/).filter(x => x.trim());
-
-    buildHeader(file);
+        rawData = text.split(/\r?\n/).filter(x => x.trim());
+        buildHeader(file);
+        tbody.innerHTML = ""; // Xóa dòng thông báo đang tải
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan='3' style='color:red; text-align:center'>Lỗi: Không tải được file data/${file}</td></tr>`;
+    }
 }
 
+// Khởi tạo lần đầu
 loadFile(currentFile);
 
 /* =====================
-   HEADER TABLE
+   3. HEADER TABLE (Cấu trúc lại tiêu đề)
 ===================== */
 function buildHeader(file) {
     if (file === "dbhc.txt")
         thead.innerHTML = "<th>Mã</th><th>Phường / Xã</th><th>Tỉnh / Huyện</th>";
     else if (file === "kbnn.txt")
         thead.innerHTML = "<th>Tên Kho bạc</th><th>Mã</th><th>Tỉnh</th>";
-    else if (file === "faq.txt") // Thêm tiêu đề cho file mới
-        thead.innerHTML = "<th style='width: 25%'>Câu hỏi</th><th style='width: 55%'>Hướng dẫn xử lý</th><th style='width: 20%'>Hình ảnh</th>";
+    else if (file === "faq.txt")
+        thead.innerHTML = "<th style='width:25%'>Câu hỏi</th><th style='width:55%'>Hướng dẫn xử lý</th><th style='width:20%'>Ảnh</th>";
     else
         thead.innerHTML = "<th>Mã</th><th>Ngân hàng</th>";
 }
 
 /* =====================
-   SEARCH DBHC (ƯU TIÊN CAO)
+   4. LOGIC TÌM KIẾM
 ===================== */
-function searchDBHC(keyword) {
-
+function searchNormal(keyword) {
     const q = normalize(keyword);
     const keys = q.split(" ");
-
     let results = [];
 
     for (let line of rawData) {
-
-        const cols = line.split(/\t| {2,}/);
-
-        const ma = cols[0] || "";
-        const ten = cols[1] || "";
-        const tinh = cols[2] || "";
-
-        const nTen = normalize(ten);
-        const nTinh = normalize(tinh);
-        const full = normalize(ten + " " + tinh);
-
+        const n = normalize(line);
         let score = 0;
-
-        /* ==========================
-           1. ĐÚNG Y TUYỆT ĐỐI
-        ========================== */
-        if (nTen === q) score += 1000;
-
-        /* ==========================
-           2. ĐÚNG CỤM
-        ========================== */
-        if (nTen.includes(q)) score += 800;
-
-        /* ==========================
-           3. KHỚP ĐỦ TỪ ĐÚNG THỨ TỰ
-        ========================== */
-        if (full.includes(q)) score += 600;
-
-        /* ==========================
-           4. ĐẢO TỪ (PHỤ)
-        ========================== */
-        const tenWords = nTen.split(" ");
-        if (keys.length === tenWords.length) {
-            const a = [...keys].sort().join(" ");
-            const b = [...tenWords].sort().join(" ");
-            if (a === b) score += 300;
-        }
-
-        /* ==========================
-           5. TỪ RỜI
-        ========================== */
+        if (n.includes(q)) score += 100; // Khớp chính xác cụm từ
         keys.forEach(k => {
-            if (nTen.includes(k)) score += 80;
-            if (nTinh.includes(k)) score += 40;
+            if (n.includes(k)) score += 20; // Khớp từng từ rời
         });
 
-        /* ==========================
-           6. MÃ
-        ========================== */
-        if (ma.includes(keyword)) score += 900;
-
-        if (score > 0)
-            results.push({ line, score });
+        if (score > 0) results.push({ line, score });
     }
-
     results.sort((a, b) => b.score - a.score);
     return results;
 }
 
 /* =====================
-   SEARCH KHÁC
-===================== */
-function searchNormal(keyword) {
-
-    const q = normalize(keyword);
-    const keys = q.split(" ");
-
-    let results = [];
-
-    for (let line of rawData) {
-
-        const n = normalize(line);
-        let score = 0;
-
-        if (n.includes(q)) score += 80;
-
-        keys.forEach(k => {
-            if (n.includes(k)) score += 20;
-        });
-
-        if (score > 0)
-            results.push({ line, score });
-    }
-
-    results.sort((a, b) => b.score - a.score);
-    return results.slice(0, 50);
-}
-
-/* =====================
-   INPUT SEARCH
+   5. HIỂN THỊ KẾT QUẢ & XỬ LÝ ẢNH
 ===================== */
 input.addEventListener("input", () => {
-
     tbody.innerHTML = "";
-    lastResult = [];
-
     const keyword = input.value.trim();
     if (!keyword) return;
 
-    let results = [];
-
-    if (currentFile === "dbhc.txt")
-        results = searchDBHC(keyword);
-    else
-        results = searchNormal(keyword);
-
-    lastResult = results;
-
+    let results = searchNormal(keyword);
     const keys = normalize(keyword).split(" ");
 
     results.forEach(obj => {
-    // Tách cột bằng Tab (\t) để không bị lỗi khi nội dung có dấu cách
-    const cols = obj.line.split('\t'); 
-    const tr = document.createElement("tr");
+        const cols = obj.line.split('\t');
+        const tr = document.createElement("tr");
 
-    cols.forEach((col, index) => {
-        const td = document.createElement("td");
-        let html = col;
+        cols.forEach((col, index) => {
+            const td = document.createElement("td");
+            let html = col;
 
-        // Chỉ highlight nếu không phải là cột ảnh
-        if (!(currentFile === "faq.txt" && index === 2)) {
-            keys.forEach(k => {
-                if (k.length > 1) {
-                    const reg = new RegExp(`(${k})`, "gi");
-                    html = html.replace(reg, "<mark>$1</mark>");
-                }
+            // Highlight từ khóa (không highlight cột ảnh)
+            if (!(currentFile === "faq.txt" && index === 2)) {
+                keys.forEach(k => {
+                    if (k.length > 1) {
+                        const reg = new RegExp(`(${k})`, "gi");
+                        html = html.replace(reg, "<mark>$1</mark>");
+                    }
+                });
+                td.innerHTML = html;
+            } else {
+                // Hiển thị ảnh cho file FAQ
+                td.innerHTML = `<img src="data/images/${col}" style="width:100px; border-radius:4px; cursor:pointer" onerror="this.style.display='none'" onclick="window.open(this.src)">`;
+            }
+            tr.appendChild(td);
+        });
+
+        // Click để Copy
+        tr.onclick = () => {
+            let textToCopy = (currentFile === "faq.txt") ? cols[1].replace(/<br>/g, '\n') : cols[0];
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert("Đã copy nội dung!");
             });
-        }
-
-        // Xử lý riêng hiển thị ảnh cho cột thứ 3 của file faq.txt
-        if (currentFile === "faq.txt" && index === 2) {
-            // Giả sử bạn để ảnh trong thư mục data/images/
-            td.innerHTML = `<img src="data/images/${col}" style="width:100%; max-width:150px; border-radius:4px; cursor:pointer" onclick="window.open(this.src)">`;
-        } else {
-            td.innerHTML = html;
-        }
-
-        tr.appendChild(td);
+        };
+        tbody.appendChild(tr);
     });
-
-    // Sửa lại logic click copy một chút cho hợp lý với FAQ
-    tr.onclick = () => {
-        if (currentFile === "faq.txt") {
-            navigator.clipboard.writeText(cols[1].replace(/<br>/g, '\n')); // Copy nội dung hướng dẫn
-            alert("Đã copy hướng dẫn xử lý!");
-        } else {
-            navigator.clipboard.writeText(cols[0]);
-            alert("Đã copy: " + cols[0]);
-        }
-    };
-
-    tbody.appendChild(tr);
 });
+
 /* =====================
-   TAB SWITCH
+   6. CHUYỂN TAB (Sửa lỗi cho điện thoại)
 ===================== */
 tabs.forEach(tab => {
-    tab.onclick = () => {
+    tab.addEventListener("click", function() {
         tabs.forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        currentFile = tab.dataset.file;
+        this.classList.add("active");
+        currentFile = this.dataset.file;
         loadFile(currentFile);
-    };
+    });
 });
