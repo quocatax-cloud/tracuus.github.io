@@ -20,8 +20,6 @@
         <button class="tab" data-file="kbnn.txt">Kho bạc</button>
         <button class="tab" data-file="nganhang.txt">Ngân hàng</button>
         <button class="tab" data-file="faq.txt">Hỏi đáp xử lí lỗi DVC</button> 
-        <!-- Thêm nút tab Hướng dẫn sử dụng vào cuối danh sách tabs -->
-        <button class="tab" data-file="huongdan" style="background-color: #e6f7ff; color: #1890ff; font-weight: bold;">💡 Hướng dẫn sử dụng</button>
     </div> <div class="top-bar">
         <input id="searchInput" placeholder="Nhập mã, tên, khu vực...">
         <button id="exportBtn">⬇ Xuất Excel</button>
@@ -45,53 +43,87 @@
       font-family: Arial, sans-serif;
       max-width: 500px;
       margin-top: 20px;
+      margin-bottom: 20px;
     ">
       <div style="font-weight: bold; margin-bottom: 4px;">Thông tin liên hệ tác giả:</div>
       <div>Số điện thoại: <a href="tel:0986646848" style="color: #8a5a2b; font-weight: bold; text-decoration: none;">0986.646.848</a></div>
     </div>
 
-    <!-- Khung nội dung hiển thị (Cần xử lý ẩn/hiện bằng JS dựa vào data-file="huongdan") -->
-    <div id="huongdan-content" style="
-        display: none; 
-        border: 1px solid #d9d9d9; 
-        background: #ffffff; 
-        padding: 20px; 
-        border-radius: 8px; 
-        font-family: Arial, sans-serif; 
-        color: #333333; 
-        line-height: 1.6;
-        margin-top: 15px;
-    ">
-        <h3 style="color: #0050b3; margin-top: 0; border-bottom: 2px solid #bae7ff; padding-bottom: 8px;">📖 HƯỚNG DẪN CÁCH MỞ VÀ TRA CỨU DANH MỤC</h3>
-        
-        <p><strong>Bước 1: Cách mở trang web trên máy tính</strong></p>
-        <ul style="padding-left: 20px; margin-bottom: 15px;">
-            <li>Tìm biểu tượng phần mềm mạng <strong>Firefox</strong> (hình quả cầu màu xanh có con cáo màu đỏ) trên màn hình chính máy tính.</li>
-            <li>Bấm chuột trái liên tiếp 2 cái thật nhanh (click đúp) để mở lên.</li>
-            <li>Nhìn lên thanh dài màu trắng ở trên cùng, gõ đúng địa chỉ: <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px; color: #c41d7f;">https://quocatax-cloud.github.io/tracuus.github.io/</code> rồi bấm nút <strong>Enter</strong> trên bàn phím.</li>
-        </ul>
+<!-- NÚT BẤM HƯỚNG DẪN ĐỘC LẬP -->
+<button type="button" id="btnToggleHD" onclick="toggleHuongDan()" style="
+    background-color: #e6f7ff; 
+    color: #1890ff; 
+    font-weight: bold;
+    border: 1px solid #91d5ff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    font-family: Arial, sans-serif;
+">💡 Xem Hướng dẫn sử dụng</button>
 
-        <p><strong>Bước 2: Chọn nội dung cần tìm</strong></p>
-        <ul style="padding-left: 20px; margin-bottom: 15px;">
-            <li>Bấm chuột trái 1 cái vào các nút tương ứng trên thanh chọn: <strong>ĐBHC</strong> (Địa bàn), <strong>Kho bạc</strong>, <strong>Ngân hàng</strong> hoặc <strong>Hỏi đáp lỗi DVC</strong>.</li>
-        </ul>
+<!-- KHUNG NỘI DUNG HƯỚNG DẪN -->
+<div id="huongdan-content" style="
+    display: none; 
+    border: 1px solid #d9d9d9; 
+    background: #ffffff; 
+    padding: 20px; 
+    border-radius: 8px; 
+    font-family: Arial, sans-serif; 
+    color: #333333; 
+    line-height: 1.6;
+    margin-bottom: 15px;
+">
+    <h3 style="color: #0050b3; margin-top: 0; border-bottom: 2px solid #bae7ff; padding-bottom: 8px;">📖 HƯỚNG DẪN CÁCH MỞ VÀ TRA CỨU DANH MỤC</h3>
+    
+    <p><strong>Bước 1: Cách mở trang web trên máy tính</strong></p>
+    <ul style="padding-left: 20px; margin-bottom: 15px;">
+        <li>Tìm biểu tượng phần mềm mạng <strong>Firefox</strong> (hình quả cầu màu xanh có con cáo màu đỏ) trên màn hình chính máy tính.</li>
+        <li>Bấm chuột trái liên tiếp 2 cái thật nhanh (click đúp) để mở lên.</li>
+        <li>Nhìn lên thanh dài màu trắng ở trên cùng, gõ đúng địa chỉ trang web rồi bấm nút <strong>Enter</strong>.</li>
+    </ul>
 
-        <p><strong>Bước 3: Gõ từ khóa để tìm kiếm</strong></p>
-        <ul style="padding-left: 20px; margin-bottom: 15px;">
-            <li>Bấm chuột trái 1 cái vào ô tìm kiếm dài màu trắng <em>"Nhập mã, tên, khu vực..."</em>.</li>
-            <li>Gõ chữ cần tìm từ bàn phím (Ví dụ: <code style="background: #f5f5f5; padding: 2px 4px;">Hoa Tien</code> hoặc <code style="background: #f5f5f5; padding: 2px 4px;">Hòa Tiến</code>). Kết quả sẽ tự hiển thị ngay bên dưới.</li>
-        </ul>
+    <p><strong>Bước 2: Chọn nội dung cần tìm</strong></p>
+    <ul style="padding-left: 20px; margin-bottom: 15px;">
+        <li>Bấm chuột trái 1 cái vào các nút trên thanh chọn: <strong>ĐBHC</strong>, <strong>Kho bạc</strong>, <strong>Ngân hàng</strong> hoặc <strong>Hỏi đáp lỗi DVC</strong>.</li>
+    </ul>
 
-      <p><strong>Bước 4: Copy mã siêu tốc (Không cần bôi đen)</strong></p>
-        <ul style="padding-left: 20px; margin-bottom: 5px;">
-            <li>Chỉ cần <strong>bấm chuột trái 1 cái vào dòng kết quả</strong> bạn muốn chọn, hệ thống sẽ tự động sao chép mã đó.</li>
-            <li>Quay lại file Excel hoặc phần mềm nhập liệu của bạn, bấm tổ hợp phím <strong>Ctrl + V</strong> để dán mã ra.</li>
-        </ul>
-    </div> <!-- Kết thúc huongdan-content -->
+    <p><strong>Bước 3: Gõ từ khóa để tìm kiếm</strong></p>
+    <ul style="padding-left: 20px; margin-bottom: 15px;">
+        <li>Bấm chuột trái 1 cái vào ô tìm kiếm dài màu trắng <em>"Nhập mã, tên, khu vực..."</em>.</li>
+        <li>Gõ chữ cần tìm từ bàn phím. Kết quả sẽ tự hiển thị ngay bên dưới.</li>
+    </ul>
 
-    <div class="note" style="margin-top: 10px;">👉 Click dòng bất kỳ để copy mã</div>
+    <p><strong>Bước 4: Copy mã siêu tốc (Không cần bôi đen)</strong></p>
+    <ul style="padding-left: 20px; margin-bottom: 5px;">
+        <li>Chỉ cần <strong>bấm chuột trái 1 cái vào dòng kết quả</strong> bạn muốn chọn, hệ thống sẽ tự động sao chép mã đó.</li>
+        <li>Quay lại file Excel hoặc phần mềm nhập liệu của bạn, bấm tổ hợp phím <strong>Ctrl + V</strong> để dán mã ra.</li>
+    </ul>
+</div> 
 
-</div> <!-- ĐÂY LÀ THẺ ĐÓNG CỦA CONTAINER BẠN BỊ THIẾU -->
+</div> 
+
+<!-- ĐOẠN SCRIPT ĐIỀU KHIỂN TRỰC TIẾP -->
+<script>
+function toggleHuongDan() {
+    var hdBox = document.getElementById("huongdan-content");
+    var hdBtn = document.getElementById("btnToggleHD");
+    
+    if (hdBox.style.display === "none") {
+        hdBox.style.display = "block";
+        hdBtn.innerHTML = "❌ Đóng Hướng dẫn sử dụng";
+        hdBtn.style.backgroundColor = "#fff1f0";
+        hdBtn.style.color = "#f5222d";
+        hdBtn.style.border = "1px solid #ffa39e";
+    } else {
+        hdBox.style.display = "none";
+        hdBtn.innerHTML = "💡 Xem Hướng dẫn sử dụng";
+        hdBtn.style.backgroundColor = "#e6f7ff";
+        hdBtn.style.color = "#1890ff";
+        hdBtn.style.border = "1px solid #91d5ff";
+    }
+}
+</script>
 
 <script src="script.js"></script>
 <script src="export.js"></script>
