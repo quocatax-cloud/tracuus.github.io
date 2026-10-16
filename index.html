@@ -2,10 +2,18 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Tra cứu danh mục</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <!-- Tailwind (tắt preflight, chỉ áp dụng trong #mlns để không ảnh hưởng các tab cũ) -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>tailwind.config={important:'#mlns',corePlugins:{preflight:false}}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="mlns.css">
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -20,6 +28,7 @@
         <button class="tab" data-file="kbnn.txt">Kho bạc</button>
         <button class="tab" data-file="nganhang.txt">Ngân hàng</button>
         <button class="tab" data-file="faq.txt">Hỏi đáp xử lí lỗi DVC</button> 
+        <button type="button" id="tabMlns" class="tab-mlns" role="tab" aria-selected="false">Tra cứu MLNS</button>
     </div> <div class="top-bar">
         <input id="searchInput" placeholder="Nhập mã, tên, khu vực...">
         <button id="exportBtn">⬇ Xuất Excel</button>
@@ -33,6 +42,47 @@
             <tbody id="results"></tbody>
         </table>
 </div>
+
+    <!-- ===== TAB: TRA CỨU MLNS (Tailwind) ===== -->
+    <section id="mlns" hidden class="mt-1" aria-label="Tra cứu Mục lục ngân sách nhà nước">
+        <div class="flex items-center gap-3 py-2">
+            <div class="min-w-0 flex-1">
+                <h3 class="m-0 text-base font-semibold leading-snug text-[var(--ink)]">Tra cứu Mục lục ngân sách</h3>
+                <p class="m-0 truncate text-xs text-[var(--muted)]">TT 130/2025/TT-BTC, hợp nhất TT 123/2026/TT-BTC</p>
+            </div>
+            <button type="button" id="mlns-themeBtn" aria-label="Đổi giao diện sáng hoặc tối"
+                class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--surface)] text-[var(--muted)] ring-1 ring-[var(--line)] active:bg-[var(--hover)]"></button>
+        </div>
+
+        <div class="sticky top-0 z-20 -mx-1 bg-[var(--bg)] px-1 pb-2 pt-1.5">
+            <div class="relative" role="search">
+                <span class="qicon pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mt)]"><span data-i="search"></span></span>
+                <input id="mlns-q" type="search" maxlength="200" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
+                    placeholder="Gõ mã hoặc từ khóa: 6001, tiền lương, tncn…" aria-label="Tìm mã hoặc từ khóa trong mục lục ngân sách"
+                    class="h-12 w-full rounded-full border-2 border-transparent bg-[var(--surface)] py-0 pl-12 pr-12 text-base text-[var(--ink)] shadow-sm outline-none ring-1 ring-[var(--line)] transition-colors placeholder:text-[var(--muted)] focus:border-[var(--mt)] sm:h-14 sm:text-lg">
+                <button type="button" id="mlns-clr" hidden aria-label="Xóa từ khóa"
+                    class="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-[var(--chip)] text-[var(--muted)]"><span data-i="x"></span></button>
+            </div>
+            <div id="mlns-sets" role="group" aria-label="Danh mục" class="sets"></div>
+        </div>
+
+        <div id="mlns-assist" class="assist" aria-live="polite"></div>
+        <div class="subbar">
+            <div id="mlns-fchips" class="fchips" role="group" aria-label="Lọc theo phần"></div>
+            <div class="sb-right">
+                <button type="button" class="tog" id="mlns-onlyNew" role="switch" aria-checked="false"><span class="sw" aria-hidden="true"></span>Chỉ mới, sửa đổi theo TT 123</button>
+                <button type="button" class="pbtn" id="mlns-foldBtn" hidden></button>
+            </div>
+        </div>
+        <p class="sr-only" id="mlns-liveCount" aria-live="polite"></p>
+
+        <div class="layout">
+            <main id="mlns-view"></main>
+            <aside class="detail" id="mlns-detail" aria-label="Chi tiết mã"></aside>
+        </div>
+        <div class="scrim" id="mlns-scrim"></div>
+        <div class="toast" id="mlns-toast" role="status" hidden></div>
+    </section>
 
     <div style="
       border: 2px solid #f4c27a;
@@ -85,7 +135,7 @@
 
     <p><strong>Bước 2: Chọn nội dung cần tìm</strong></p>
     <ul style="padding-left: 20px; margin-bottom: 15px;">
-        <li>Bấm chuột trái 1 cái vào các nút trên thanh chọn: <strong>ĐBHC</strong>, <strong>Kho bạc</strong>, <strong>Ngân hàng</strong> hoặc <strong>Hỏi đáp lỗi DVC</strong>.</li>
+        <li>Bấm chuột trái 1 cái vào các nút trên thanh chọn: <strong>ĐBHC</strong>, <strong>Kho bạc</strong>, <strong>Ngân hàng</strong> hoặc <strong>Hỏi đáp lỗi DVC</strong> hoặc <strong>Tra cứu MLNS</strong> (mục lục ngân sách: gõ mã như 6001 hoặc từ khóa như tiền lương, tncn).</li>
     </ul>
 
     <p><strong>Bước 3: Gõ từ khóa để tìm kiếm</strong></p>
@@ -127,5 +177,6 @@ function toggleHuongDan() {
 
 <script src="script.js"></script>
 <script src="export.js"></script>
+<script src="mlns.js"></script>
 </body>
 </html>
