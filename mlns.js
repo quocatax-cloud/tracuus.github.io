@@ -9,8 +9,7 @@ const KEYS=['backgroundColor','color','borderTopWidth','borderTopStyle','borderT
 const snap=el=>{if(!el)return null;const cs=getComputedStyle(el),o={};KEYS.forEach(k=>o[k]=cs[k]);return o};
 const sOn=snap(document.querySelector('.tabs .tab.active')||tabs[0]);
 const sOff=snap(tabs.find(t=>!t.classList.contains('active')));
-function paint(on){const s=on?sOn:sOff;TAB.style.cursor='pointer';if(!s)return;KEYS.forEach(k=>TAB.style[k]=s[k]);
-  TAB.style.borderTop=s.borderTopWidth+' '+s.borderTopStyle+' '+s.borderTopColor;TAB.style.border=TAB.style.borderTop}
+function paint(){}
 paint(false);
 let started=false;
 function boot(RAW){

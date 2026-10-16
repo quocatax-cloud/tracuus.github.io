@@ -14,6 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="mlns.css">
+    <link rel="stylesheet" href="theme.css">
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -21,7 +22,13 @@
 
 <div class="container">
 
-    <h2>TRA CỨU DANH MỤC</h2>
+    <header class="app-header">
+        <div class="app-logo" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 36 36"><rect width="16.5" height="16.5" rx="5" fill="#2F66F5"/><rect x="19.5" width="16.5" height="16.5" rx="8.25" fill="#8B4CF0"/><rect y="19.5" width="16.5" height="16.5" rx="8.25" fill="#0E9E85"/><rect x="19.5" y="19.5" width="16.5" height="16.5" rx="5" fill="#F0701F"/></svg></div>
+        <div>
+            <h2>Tra cứu danh mục</h2>
+            <p>Địa bàn hành chính · Kho bạc · Ngân hàng · Mục lục ngân sách</p>
+        </div>
+    </header>
 
     <div class="tabs">
         <button class="tab active" data-file="dbhc.txt">ĐBHC</button>
@@ -84,96 +91,24 @@
         <div class="toast" id="mlns-toast" role="status" hidden></div>
     </section>
 
-    <div style="
-      border: 2px solid #f4c27a;
-      background: #fff7e6;
-      padding: 16px;
-      border-radius: 12px;
-      color: #8a5a2b;
-      font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin-top: 20px;
-      margin-bottom: 20px;
-    ">
-      <div style="font-weight: bold; margin-bottom: 4px;">Thông tin liên hệ tác giả:</div>
-      <div>Số điện thoại: <a href="tel:0986646848" style="color: #8a5a2b; font-weight: bold; text-decoration: none;">0986.646.848</a></div>
-    </div>
+    <section class="contact">
+        <div><b>Liên hệ tác giả</b><span>Hỗ trợ, góp ý danh mục</span></div>
+        <a class="call" href="tel:0986646848">📞 0986.646.848</a>
+    </section>
 
-<!-- NÚT BẤM HƯỚNG DẪN ĐỘC LẬP -->
-<button type="button" id="btnToggleHD" onclick="toggleHuongDan()" style="
-    background-color: #e6f7ff; 
-    color: #1890ff; 
-    font-weight: bold;
-    border: 1px solid #91d5ff;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 15px;
-    font-family: Arial, sans-serif;
-">💡 Xem Hướng dẫn sử dụng</button>
+    <details class="guide">
+        <summary>💡 Hướng dẫn sử dụng</summary>
+        <div class="body">
+            <ol>
+                <li><b class="t">Mở trang web</b><p>Mở <strong>Firefox</strong> (hoặc Chrome, Safari trên điện thoại), gõ địa chỉ <code>https://quocatax-cloud.github.io/tracuus.github.io/</code> rồi bấm <strong>Enter</strong>.</p></li>
+                <li><b class="t">Chọn nội dung cần tìm</b><p>Bấm một nút trên thanh tab: <strong>ĐBHC</strong>, <strong>Kho bạc</strong>, <strong>Ngân hàng</strong>, <strong>Hỏi đáp xử lí lỗi DVC</strong> hoặc <strong>Tra cứu MLNS</strong> (mục lục ngân sách: gõ mã như 6001 hoặc từ khóa như tiền lương, tncn).</p></li>
+                <li><b class="t">Gõ từ khóa</b><p>Bấm vào ô tìm kiếm rồi gõ mã, tên hoặc khu vực. Kết quả hiện ngay bên dưới.</p></li>
+                <li><b class="t">Chép mã nhanh</b><p>Bấm vào dòng kết quả cần chọn, hệ thống tự chép mã. Sang Excel hoặc phần mềm nhập liệu, bấm <strong>Ctrl + V</strong> để dán.</p></li>
+            </ol>
+        </div>
+    </details>
 
-<!-- KHUNG NỘI DUNG HƯỚNG DẪN -->
-<div id="huongdan-content" style="
-    display: none; 
-    border: 1px solid #d9d9d9; 
-    background: #ffffff; 
-    padding: 20px; 
-    border-radius: 8px; 
-    font-family: Arial, sans-serif; 
-    color: #333333; 
-    line-height: 1.6;
-    margin-bottom: 15px;
-">
-    <h3 style="color: #0050b3; margin-top: 0; border-bottom: 2px solid #bae7ff; padding-bottom: 8px;">📖 HƯỚNG DẪN CÁCH MỞ VÀ TRA CỨU DANH MỤC</h3>
-    
-    <p><strong>Bước 1: Cách mở trang web trên máy tính</strong></p>
-    <ul style="padding-left: 20px; margin-bottom: 15px;">
-        <li>Tìm biểu tượng phần mềm mạng <strong>Firefox</strong> (hình quả cầu màu xanh có con cáo màu đỏ) trên màn hình chính máy tính.</li>
-        <li>Bấm chuột trái liên tiếp 2 cái thật nhanh (click đúp) để mở lên.</li>
-        <li>Nhìn lên thanh dài màu trắng ở trên cùng, gõ đúng địa chỉ trang web https://quocatax-cloud.github.io/tracuus.github.io/ rồi bấm nút <strong>Enter</strong>.</li>
-    </ul>
-
-    <p><strong>Bước 2: Chọn nội dung cần tìm</strong></p>
-    <ul style="padding-left: 20px; margin-bottom: 15px;">
-        <li>Bấm chuột trái 1 cái vào các nút trên thanh chọn: <strong>ĐBHC</strong>, <strong>Kho bạc</strong>, <strong>Ngân hàng</strong> hoặc <strong>Hỏi đáp lỗi DVC</strong> hoặc <strong>Tra cứu MLNS</strong> (mục lục ngân sách: gõ mã như 6001 hoặc từ khóa như tiền lương, tncn).</li>
-    </ul>
-
-    <p><strong>Bước 3: Gõ từ khóa để tìm kiếm</strong></p>
-    <ul style="padding-left: 20px; margin-bottom: 15px;">
-        <li>Bấm chuột trái 1 cái vào ô tìm kiếm dài màu trắng <em>"Nhập mã, tên, khu vực..."</em>.</li>
-        <li>Gõ chữ cần tìm từ bàn phím. Kết quả sẽ tự hiển thị ngay bên dưới.</li>
-    </ul>
-
-    <p><strong>Bước 4: Copy mã siêu tốc (Không cần bôi đen)</strong></p>
-    <ul style="padding-left: 20px; margin-bottom: 5px;">
-        <li>Chỉ cần <strong>bấm chuột trái 1 cái vào dòng kết quả</strong> bạn muốn chọn, hệ thống sẽ tự động sao chép mã đó.</li>
-        <li>Quay lại file Excel hoặc phần mềm nhập liệu của bạn, bấm tổ hợp phím <strong>Ctrl + V</strong> để dán mã ra.</li>
-    </ul>
-</div> 
-
-</div> 
-
-<!-- ĐOẠN SCRIPT ĐIỀU KHIỂN TRỰC TIẾP -->
-<script>
-function toggleHuongDan() {
-    var hdBox = document.getElementById("huongdan-content");
-    var hdBtn = document.getElementById("btnToggleHD");
-    
-    if (hdBox.style.display === "none") {
-        hdBox.style.display = "block";
-        hdBtn.innerHTML = "❌ Đóng Hướng dẫn sử dụng";
-        hdBtn.style.backgroundColor = "#fff1f0";
-        hdBtn.style.color = "#f5222d";
-        hdBtn.style.border = "1px solid #ffa39e";
-    } else {
-        hdBox.style.display = "none";
-        hdBtn.innerHTML = "💡 Xem Hướng dẫn sử dụng";
-        hdBtn.style.backgroundColor = "#e6f7ff";
-        hdBtn.style.color = "#1890ff";
-        hdBtn.style.border = "1px solid #91d5ff";
-    }
-}
-</script>
+</div>
 
 <script src="script.js"></script>
 <script src="export.js"></script>
