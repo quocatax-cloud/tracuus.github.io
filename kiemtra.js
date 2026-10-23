@@ -11,7 +11,8 @@
     // CÀI ĐẶT CỐ ĐỊNH (người dùng không sửa được)
     // ---------------------------------------------------------------
     const FIXED = {
-        nguong: 1000,                 // chênh quá số đồng này ở một cấp thì báo lệch
+        nguong: 1000,                 // chênh quá số đồng này ở một cấp thì xét lệch số tiền
+        tolLamTron: 0.00001,          // % đã khớp: chênh ≤ max(nguong, 0,001% PS có) là do làm tròn
         tkThu: ['7111', '7114'],       // tài khoản thu đối chiếu TLPC
         tkGTGC: ['7113'],              // ghi thu ghi chi: chỉ liệt kê, không đối chiếu
         tkTreo: ['3391', '3969', '3911', '3399'],
@@ -177,16 +178,21 @@
             }
             return { kind: 'OK', row: pool[0], cqtKhac, pool };
         }
+        // Lệch thật: % làm tròn khác quy định, có cấp khác, hoặc số tiền chênh vượt ngưỡng làm tròn.
+        // Chênh làm tròn: % đã khớp, chỉ lệch vài đồng do TABMIS làm tròn từng chứng từ.
         function compareRates(g, exp, nguong) {
-            const diff = {}, lechKeys = [];
+            const diff = {}, pctKeys = [], dongKeys = [];
+            const tol = Math.max(nguong, Math.round(Math.abs(g.tong) * FIXED.tolLamTron));
             ['tw', 'tinh', 'xa'].forEach(k => {
                 const ky = Math.round(g.tong * (+exp[k]) / 100);
                 diff[k] = g.cap[k] - ky;
-                const pctLech = Math.round(g.pct[k]) !== Math.round(+exp[k]);
-                if (pctLech || Math.abs(diff[k]) > nguong) lechKeys.push(k);
+                if (Math.round(g.pct[k]) !== Math.round(+exp[k])) pctKeys.push(k);
+                else if (Math.abs(diff[k]) > nguong) dongKeys.push(k);
             });
-            if (g.cap.khac) lechKeys.push('khac');
-            return { diff, lechKeys, lech: lechKeys.length > 0 };
+            const khac = !!g.cap.khac;
+            const lamTron = !pctKeys.length && !khac && dongKeys.length > 0 && dongKeys.every(k => Math.abs(diff[k]) <= tol);
+            const lechKeys = lamTron ? [] : pctKeys.concat(dongKeys, khac ? ['khac'] : []);
+            return { diff, lechKeys, pctKeys, dongKeys, tol, lamTron, lech: lechKeys.length > 0 };
         }
         // Cơ quan thu là tiêu chí xác định TLPC: nếu danh mục chỉ có quy định cho
         // cơ quan thu khác thì luôn báo "Thiếu CQT", kể cả khi tỉ lệ trùng.
@@ -194,7 +200,7 @@
             if (g.nhom === 'HQ') {
                 const exp = { tw: 100, tinh: 0, xa: 0 };
                 const c = compareRates(g, exp, nguong);
-                return Object.assign({ kind: c.lech ? 'LECH' : 'DUNG', exp, src: 'Quy tắc Hải quan: 100% TW' }, c);
+                return Object.assign({ kind: c.lech ? 'LECH' : (c.lamTron ? 'LAM_TRON' : 'DUNG'), exp, src: 'Quy tắc Hải quan: 100% TW' }, c);
             }
             const m = matchCore(P, { ndkt: g.ndkt, chuong: g.chuongNum, dbhc: g.dbhc, dvSet: g.dvSet });
             if (m.kind === 'NF') return m;
@@ -215,7 +221,7 @@
             const r = m.row;
             const exp = { tw: +r.tw, tinh: +r.tinh, xa: +r.xa };
             const c = compareRates(g, exp, nguong);
-            const kind = c.lech ? 'LECH' : (r.status === 'pending' ? 'TAM_KHOP' : 'DUNG');
+            const kind = c.lech ? 'LECH' : (r.status === 'pending' ? 'TAM_KHOP' : (c.lamTron ? 'LAM_TRON' : 'DUNG'));
             return Object.assign({ kind, exp, row: r, cqtKhac: false }, c);
         }
 
@@ -294,7 +300,7 @@
             });
 
             const P = prepDM(dmRows);
-            const res = { lech: [], nf: [], xacnhan: [], dung: [], tamKhop: 0, tongNhom: 0, gtgc, tongTien: 0 };
+            const res = { lech: [], nf: [], xacnhan: [], dung: [], lamTron: [], tamKhop: 0, tongNhom: 0, gtgc, tongTien: 0 };
             Object.values(groups).forEach(g => {
                 if (!g.tong) return;
                 res.tongNhom++;
@@ -306,12 +312,13 @@
                 const e = evaluateGroup(g, P, FIXED.nguong);
                 g.ev = e;
                 if (e.kind === 'DUNG') res.dung.push(g);
+                else if (e.kind === 'LAM_TRON') res.lamTron.push(g);
                 else if (e.kind === 'LECH') res.lech.push(g);
                 else if (e.kind === 'NF') { g.sg = suggestRates(g, P); res.nf.push(g); }
                 else { if (e.kind === 'TAM_KHOP') res.tamKhop++; res.xacnhan.push(g); }
             });
             const byTien = (a, b) => Math.abs(b.tong) - Math.abs(a.tong);
-            res.lech.sort(byTien); res.nf.sort(byTien); res.xacnhan.sort(byTien); res.dung.sort(byTien);
+            res.lech.sort(byTien); res.nf.sort(byTien); res.xacnhan.sort(byTien); res.dung.sort(byTien); res.lamTron.sort(byTien);
             gtgc.sort((a, b) => Math.abs(b.tien) - Math.abs(a.tien));
             return res;
         }
@@ -700,7 +707,22 @@
         return HEAD7('Tỉ lệ phân chia', 'Căn cứ') + L.slice(0, FIXED.maxShow).map(g => {
             const e = g.ev;
             return `<article class="kt-row is-lech">${codeCells(g)}<div class="kt-c" data-l="Tỉ lệ">${rateTable(g, e.exp, e.diff, e.lechKeys)}</div>
-                <div class="kt-c" data-l="Căn cứ">${e.row ? ccHtml(e.row) : `<div class="kt-cc">${esc(e.src)}</div>`}</div></article>`;
+                <div class="kt-c" data-l="Căn cứ">${lechWhy(e)}${e.row ? ccHtml(e.row) : `<div class="kt-cc">${esc(e.src)}</div>`}</div></article>`;
+        }).join('') + more(L.length);
+    }
+    function lechWhy(e) {
+        if (e.pctKeys && e.pctKeys.length) return '<span class="kt-badge kt-b-LECH">Tỉ lệ lệch</span>';
+        if (e.lechKeys && e.lechKeys.includes('khac')) return '<span class="kt-badge kt-b-LECH">Có cấp ngân sách khác</span>';
+        return `<span class="kt-badge kt-b-LECH">Lệch số tiền</span><div class="kt-why">% đã khớp nhưng chênh vượt ngưỡng làm tròn ${fmt(e.tol)} đồng, cần kiểm tra.</div>`;
+    }
+    function viewLamTron(L) {
+        if (!S.res.lamTron.length) return empty('Không có nhóm nào chỉ chênh do làm tròn.');
+        if (!L.length) return empty('Không có nhóm nào khớp ô lọc.');
+        return HEAD7('Tỉ lệ phân chia', 'Căn cứ') + L.slice(0, FIXED.maxShow).map(g => {
+            const e = g.ev;
+            const maxD = Math.max(...e.dongKeys.map(k => Math.abs(e.diff[k])));
+            return `<article class="kt-row is-lt">${codeCells(g)}<div class="kt-c" data-l="Tỉ lệ">${rateTable(g, e.exp, e.diff, null)}</div>
+                <div class="kt-c" data-l="Căn cứ"><div class="kt-why">Chênh lớn nhất ${fmt(maxD)} đồng, trong ngưỡng làm tròn ${fmt(e.tol)} đồng.</div>${e.row ? ccHtml(e.row) : `<div class="kt-cc">${esc(e.src)}</div>`}</div></article>`;
         }).join('') + more(L.length);
     }
     function viewNF(L) {
@@ -778,6 +800,7 @@
             ['Lech', [H.concat(H_QD, ['Chênh TW', 'Chênh TP', 'Chênh Xã'], H_REF)].concat(r.lech.map(g => base(g).concat(qd(g.ev), [g.ev.diff.tw, g.ev.diff.tinh, g.ev.diff.xa], rowRef(g.ev))))],
             ['KhongCoTrongTLPC', [H.concat(['Lý do', 'Chi tiết'])].concat(r.nf.map(g => base(g).concat([NF_LABEL[g.ev.loai], strip(nfMsg(g))])))],
             ['CanXacNhan', [H.concat(['Loại'], H_QD, H_REF)].concat(r.xacnhan.map(g => base(g).concat([g.ev.kind === 'TAM_KHOP' ? 'Tạm khớp' : 'TLPC mơ hồ'], qd(g.ev), rowRef(g.ev))))],
+            ['ChenhLamTron', [H.concat(H_QD, ['Chênh TW', 'Chênh TP', 'Chênh Xã', 'Ngưỡng làm tròn'], H_REF)].concat(r.lamTron.map(g => base(g).concat(qd(g.ev), [g.ev.diff.tw, g.ev.diff.tinh, g.ev.diff.xa, g.ev.tol], rowRef(g.ev))))],
             ['Dung', [H.concat(H_QD, H_REF)].concat(r.dung.map(g => base(g).concat(qd(g.ev), rowRef(g.ev))))],
             ['LoiDBHC', [['Mã TK', 'NDKT', 'Cấp', 'ĐVSD', 'ĐBHC đang ghi', 'ĐBHC nên là', 'Dư cuối', 'Ghi chú']].concat(S.dbhcErr.map(e => [e.tk, e.ndkt, e.cap, e.dv, e.dbhcSai, e.dbhcDung, e.soTien, e.note]))],
             ['TKTreo', [['Mã TK', 'Đơn vị sử dụng', 'Dư cuối']].concat(S.treo.map(e => [e.tk, e.dvsd, e.sodu]))],
@@ -785,7 +808,7 @@
         ];
         const m = S.report.meta;
         const info = [['Kiểm tra số liệu cân đối - Đà Nẵng'], ['File báo cáo', S.report.fileName], ['Kỳ báo cáo', m.tuNgay ? `${m.tuNgay} - ${m.denNgay}` : ''], ['Mã kho bạc', m.maKB], ['Bộ TLPC', dm().name + (dm().src === 'default' ? ' (mặc định)' : ' (tải lên)')],
-            ['Số nhóm thu', r.tongNhom], ['Đúng', r.dung.length], ['Lệch', r.lech.length], ['Không có trong TLPC', r.nf.length], ['Cần xác nhận', r.xacnhan.length], ['Lỗi ĐBHC', S.dbhcErr.length], ['TK treo', S.treo.length], ['Ghi thu ghi chi 7113', r.gtgc.length],
+            ['Số nhóm thu', r.tongNhom], ['Đúng', r.dung.length], ['Lệch', r.lech.length], ['Chênh làm tròn', r.lamTron.length], ['Không có trong TLPC', r.nf.length], ['Cần xác nhận', r.xacnhan.length], ['Lỗi ĐBHC', S.dbhcErr.length], ['TK treo', S.treo.length], ['Ghi thu ghi chi 7113', r.gtgc.length],
             ['Xuất lúc', new Date().toLocaleString('vi-VN')]];
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(info), 'TongHop');
@@ -843,7 +866,7 @@
     function renderBalance() {
         const r = S.res;
         const seg = [
-            ['dung', r.dung.length, 'đúng'], ['xn', r.xacnhan.length, 'cần xác nhận'],
+            ['dung', r.dung.length, 'đúng'], ['lt', r.lamTron.length, 'chênh làm tròn'], ['xn', r.xacnhan.length, 'cần xác nhận'],
             ['nf', r.nf.length, 'không có trong TLPC'], ['lech', r.lech.length, 'lệch']
         ];
         const tot = r.tongNhom || 1;
@@ -861,7 +884,7 @@
     }
     function renderTabs() {
         const r = S.res;
-        const T = [['lech', 'Lệch tỉ lệ', r.lech.length, 1], ['nf', 'Không có trong TLPC', r.nf.length, 1], ['xn', 'Cần xác nhận', r.xacnhan.length, 0], ['dung', 'Đúng', r.dung.length, 0],
+        const T = [['lech', 'Lệch phân chia', r.lech.length, 1], ['nf', 'Không có trong TLPC', r.nf.length, 1], ['xn', 'Cần xác nhận', r.xacnhan.length, 0], ['lt', 'Chênh làm tròn', r.lamTron.length, 0], ['dung', 'Đúng', r.dung.length, 0],
             ['dbhc', 'Lỗi ĐBHC', S.dbhcErr.length, 1], ['treo', 'TK treo', S.treo.length, 1], ['gtgc', 'Ghi thu ghi chi', r.gtgc.length, 0]];
         return `<div class="kt-tabs" role="tablist">${T.map(([k, l, n, warn]) => `<button type="button" role="tab" aria-selected="${S.tab === k}" class="kt-tab${S.tab === k ? ' is-on' : ''}" data-tab="${k}">${l}<span class="kt-cnt${warn && n ? ' is-warn' : ''}">${fmt(n)}</span></button>`).join('')}</div>`;
     }
@@ -872,6 +895,7 @@
             case 'nf': return viewNF(r.nf.filter(matchesQ));
             case 'xn': return viewXN(r.xacnhan.filter(matchesQ));
             case 'dung': return viewDung(r.dung.filter(matchesQ));
+            case 'lt': return viewLamTron(r.lamTron.filter(matchesQ));
             case 'dbhc': return viewDBHC();
             case 'treo': return viewTreo();
             case 'gtgc': return viewGTGC();
@@ -879,7 +903,8 @@
         return '';
     }
     const NOTE = {
-        lech: 'Có quy định trong bộ TLPC nhưng tỉ lệ thực tế khác: lệch sau khi làm tròn % thành số nguyên, hoặc số tiền một cấp chênh quá 1.000 đồng.',
+        lech: 'Có quy định trong bộ TLPC nhưng phân chia sai: % làm tròn khác quy định, có cấp ngân sách khác, hoặc % khớp mà số tiền chênh vượt ngưỡng làm tròn.',
+        lt: 'Tỉ lệ đã khớp quy định, chỉ chênh vài đồng do TABMIS làm tròn từng chứng từ. Không phải phân chia sai, để riêng cho đỡ rối.',
         nf: 'Bộ TLPC chưa có quy định cho khoản này. Ô tô đỏ là phần còn thiếu. Gợi ý tỉ lệ chỉ để tham khảo.',
         xn: 'Khớp dòng quy tắc đang chờ xác nhận, hoặc bộ TLPC có nhiều dòng cùng phạm vi khác tỉ lệ.',
         dung: 'Tỉ lệ thực tế khớp dòng quy tắc đã xác nhận.',
@@ -892,7 +917,7 @@
         return `<details class="kt-fixed"><summary>Cài đặt áp dụng (cố định)</summary>
             <dl>
                 <dt>Tài khoản đối chiếu TLPC</dt><dd>${FIXED.tkThu.join(', ')} theo cột Phát sinh có VND. TK 7113 (ghi thu ghi chi) chỉ liệt kê, không đối chiếu.</dd>
-                <dt>Ngưỡng lệch</dt><dd>Tỉ lệ làm tròn thành số nguyên trước khi so (16,67% thành 17%). Ngoài ra, một cấp chênh quá ${fmt(FIXED.nguong)} đồng so với số tính theo tỉ lệ vẫn báo lệch.</dd>
+                <dt>Ngưỡng lệch</dt><dd>Tỉ lệ làm tròn thành số nguyên trước khi so (16,67% thành 17%). Nếu % đã khớp mà một cấp chênh so với số tính theo tỉ lệ: chênh không quá ${fmt(FIXED.nguong)} đồng hoặc 0,001% PS có (lấy số lớn hơn) thì xếp vào “Chênh làm tròn”; vượt ngưỡng đó thì vẫn báo lệch.</dd>
                 <dt>Cơ quan thu</dt><dd>Dòng quy tắc có ghi cơ quan thu chỉ áp dụng cho đơn vị cùng nhóm. Đơn vị khác nhóm luôn báo “Thiếu CQT”, kể cả khi tỉ lệ trùng. Dòng để trống cơ quan thu áp dụng cho mọi cơ quan thu.</dd>
                 <dt>Thứ tự ưu tiên</dt><dd>ĐBHC cụ thể trước “Các phường, xã còn lại”, mã NDKT cụ thể trước khoảng mã, rồi lọc theo cơ quan thu, rồi khoảng chương hẹp nhất.</dd>
                 <dt>Nhóm đơn vị thu</dt><dd>Tự suy luận từ tên ĐVSD: Thuế TP, Thuế cơ sở, Cơ quan TW, Cơ quan TP, Cơ quan cấp xã. Đơn vị tên có chữ Hải quan áp dụng 100% TW.</dd>

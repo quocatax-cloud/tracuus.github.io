@@ -14,7 +14,7 @@ body.kt-on .top-bar,body.kt-on .table-wrapper,body.kt-on #mlns{display:none!impo
 #kt{
   --k-ink:var(--ink,#14213D);--k-mut:var(--muted,#5B6B82);--k-surf:var(--surface,#fff);--k-bg:var(--bg,#F5F7FB);
   --k-line:var(--line,#DCE3EE);--k-hover:var(--hover,#EEF3FB);--k-chip:var(--chip,#EAF0F8);
-  --k-ok:#0E9E85;--k-xn:#8B4CF0;--k-nf:#E2661A;--k-lech:#D0342C;--k-blue:#2F66F5;
+  --k-ok:#0E9E85;--k-lt:#7FCFC0;--k-xn:#8B4CF0;--k-nf:#E2661A;--k-lech:#D0342C;--k-blue:#2F66F5;
   font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--k-ink);
   margin-top:6px;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums
 }
@@ -81,6 +81,7 @@ body.kt-on .top-bar,body.kt-on .table-wrapper,body.kt-on #mlns{display:none!impo
 #kt .kt-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
 #kt .kt-leg.is-on{color:var(--k-ink);text-decoration:underline;text-underline-offset:4px}
 #kt .kt-s-dung.kt-seg,#kt .kt-s-dung i{background:var(--k-ok)}
+#kt .kt-s-lt.kt-seg,#kt .kt-s-lt i{background:var(--k-lt)}
 #kt .kt-s-xn.kt-seg,#kt .kt-s-xn i{background:var(--k-xn)}
 #kt .kt-s-nf.kt-seg,#kt .kt-s-nf i{background:var(--k-nf)}
 #kt .kt-s-lech.kt-seg,#kt .kt-s-lech i{background:var(--k-lech)}
@@ -99,12 +100,13 @@ body.kt-on .top-bar,body.kt-on .table-wrapper,body.kt-on #mlns{display:none!impo
 
 /* Danh sách kết quả: lưới trên máy tính, thẻ trên điện thoại */
 #kt .kt-view{display:flex;flex-direction:column;gap:8px}
-#kt .kt-row{display:grid;grid-template-columns:150px 140px 120px minmax(150px,1fr) 120px 220px minmax(220px,1.3fr);gap:12px;
+#kt .kt-row{display:grid;grid-template-columns:140px 130px 115px minmax(150px,1fr) 130px 270px minmax(210px,1.2fr);gap:12px;
   padding:12px 14px;border:1px solid var(--k-line);border-left-width:4px;border-radius:12px;background:var(--k-surf)}
 #kt .kt-row.is-lech{border-left-color:var(--k-lech)}
 #kt .kt-row.is-nf{border-left-color:var(--k-nf)}
 #kt .kt-row.is-xn{border-left-color:var(--k-xn)}
 #kt .kt-row.is-dung{border-left-color:var(--k-ok)}
+#kt .kt-row.is-lt{border-left-color:var(--k-lt)}
 #kt .kt-head{padding:0 14px 0 18px;border:0;background:none;font-size:12px;font-weight:600;color:var(--k-mut)}
 #kt .kt-c{min-width:0;overflow-wrap:anywhere}
 #kt .kt-c-tien{text-align:right}
@@ -115,6 +117,7 @@ body.kt-on .top-bar,body.kt-on .table-wrapper,body.kt-on #mlns{display:none!impo
 #kt .kt-chip{display:inline-block;margin:4px 4px 0 0;padding:1px 8px;border-radius:999px;background:var(--k-chip);color:var(--k-ink);font-size:11.5px;font-weight:500}
 #kt .kt-chip-q{color:var(--k-blue)}
 #kt .kt-rt{border-collapse:collapse;font-size:12.5px}
+#kt .kt-c:has(>.kt-rt){overflow-x:auto}
 #kt .kt-rt th,#kt .kt-rt td{padding:1px 10px 1px 0;text-align:right;white-space:nowrap;font-weight:400}
 #kt .kt-rt th:first-child{text-align:left;color:var(--k-mut);font-weight:500}
 #kt .kt-rt tr:first-child th{color:var(--k-mut);font-size:11.5px;font-weight:500}
@@ -128,6 +131,7 @@ body.kt-on .top-bar,body.kt-on .table-wrapper,body.kt-on #mlns{display:none!impo
 #kt .kt-badge{display:inline-block;padding:2px 8px;border-radius:6px;color:#fff;font-size:12px;font-weight:600}
 #kt .kt-b-NDKT,#kt .kt-b-CHUONG,#kt .kt-b-DBHC,#kt .kt-b-CQT{background:var(--k-nf)}
 #kt .kt-b-TAM,#kt .kt-b-MOHO{background:var(--k-xn)}
+#kt .kt-b-LECH{background:var(--k-lech);margin-bottom:4px}
 #kt .kt-sg{margin-top:6px;font-size:12.5px}
 #kt .kt-sg summary{cursor:pointer;color:var(--k-blue)}
 #kt .kt-sg i{color:var(--k-mut)}
