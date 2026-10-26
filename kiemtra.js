@@ -827,7 +827,7 @@
         return `<div class="kt-lock">
             <svg class="kt-lockic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>
             <h3>Kiểm tra số liệu cân đối</h3>
-            <p>Nhập mật khẩu để mở tab này.</p>
+            <p>Nhập mật khẩu để mở tab này. Chưa có mật khẩu, vui lòng liên hệ tác giả.</p>
             <form id="kt-lockform" autocomplete="off">
                 <label class="sr-only" for="kt-pass">Mật khẩu</label>
                 <input id="kt-pass" type="password" placeholder="Mật khẩu" autocomplete="current-password" spellcheck="false" autocapitalize="characters">
@@ -835,6 +835,38 @@
             </form>
             <p class="kt-lockerr" id="kt-lockerr" role="alert">${esc(S.lockErr || '')}</p>
         </div>`;
+    }
+    // ---- Gợi ý (hint) ----
+    const HINTS = {
+        report: '<b>File cần chọn:</b> Báo cáo chi tiết số dư theo 12 phân đoạn COA, xuất Excel từ TABMIS. Giữ nguyên các dòng tiêu đề, không xóa, không đổi tên cột.<br><b>Tool đọc:</b> PS có VND của TK 7111, 7114 để đối chiếu TLPC; Dư cuối VND để kiểm tra ĐBHC và TK treo.<br>File chỉ được đọc trên máy của bạn, không gửi đi đâu.',
+        tlpc: '<b>Mặc định:</b> bộ quy tắc NQ15, luôn được dùng mỗi khi mở trang.<br><b>Tải TLPC mặc định:</b> lấy file mẫu để xem hoặc sửa.<br><b>Tải lên bộ TLPC:</b> dùng file của bạn (sheet “DanhMuc”, đúng tên cột như mẫu). Chỉ có hiệu lực đến khi tải lại trang.<br><b>Ô “Cơ quan thu” để trống</b> nghĩa là dòng áp dụng cho mọi cơ quan thu.',
+        bal: 'Mỗi đoạn màu là số nhóm thu (cùng NDKT, chương, ĐVSD, ĐBHC). Bấm vào đoạn màu hoặc chú thích để mở tab tương ứng.<br><b>Màu đỏ, cam</b> là việc cần xử lý; <b>tím</b> cần xác nhận quy tắc; <b>xanh</b> là đúng hoặc chỉ chênh do làm tròn.',
+        lech: '<b>Cách xử lý:</b> xem cột Tỉ lệ phân chia, cấp tô đỏ là cấp sai. Đối chiếu với “Căn cứ” rồi điều chỉnh hạch toán trên TABMIS.<br>Nhãn <b>Lệch số tiền</b>: % đã khớp nhưng số tiền chênh lớn, thường do một vài chứng từ bị phân sai cấp.',
+        nf: '<b>Ô tô đỏ</b> là phần bộ TLPC còn thiếu: NDKT, chương, ĐBHC hoặc cơ quan thu.<br><b>Thiếu CQT:</b> có quy định nhưng cho cơ quan thu khác. Kiểm tra lại đơn vị thu trên chứng từ, hoặc bổ sung dòng quy tắc rồi tải lên lại.<br>Gợi ý tỉ lệ chỉ để tham khảo, không phải kết luận.',
+        xn: '<b>Tạm khớp:</b> tỉ lệ đúng với dòng quy tắc đang chờ xác nhận. Khi có căn cứ, đổi trạng thái dòng đó trong file TLPC.<br><b>Mơ hồ:</b> bộ TLPC có nhiều dòng cùng phạm vi khác tỉ lệ; sửa file TLPC rồi tải lên lại.',
+        lt: 'TABMIS làm tròn từng chứng từ đến đồng nên tổng mỗi cấp có thể chênh vài đồng. Khoản ở đây có % khớp và chênh không quá 1.000 đồng hoặc 0,001% PS có. <b>Không cần điều chỉnh.</b>',
+        dung: 'Tỉ lệ thực tế khớp dòng quy tắc đã xác nhận. Không cần xử lý.',
+        dbhc: 'Trong cùng TK, cấp, ĐVSD, mã ĐBHC xuất hiện ít hơn bị coi là ghi sai; cột Ghi chú cho biết mã nên dùng. Kiểm tra chứng từ rồi điều chỉnh ĐBHC trên TABMIS.',
+        treo: 'Tài khoản trung gian phải về 0 cuối kỳ. Khoản còn dư cần xác định nguồn gốc và hạch toán đúng tài khoản.',
+        gtgc: 'Ghi thu ghi chi hạch toán TK 7113, không đối chiếu tỉ lệ phân chia. Danh sách để tham khảo.'
+    };
+    function hint(k, label, text) {
+        const on = S.hintOpen === k;
+        return `<span class="kt-hw"><button type="button" class="kt-hint${text ? ' kt-hint-lb' : ''}" data-hint="${k}" aria-expanded="${on}" aria-label="Gợi ý: ${esc(label || '')}"><span aria-hidden="true">?</span>${text ? esc(text) : ''}</button>${on ? `<span class="kt-pop" role="tooltip">${HINTS[k]}</span>` : ''}</span>`;
+    }
+    function renderSteps() {
+        if (S.hideSteps) return `<button type="button" class="kt-showsteps" data-act="steps">Hiện gợi ý các bước</button>`;
+        const cur = S.res ? 2 : 1;
+        const issues = S.res ? S.res.lech.length + S.res.nf.length + S.dbhcErr.length + S.treo.length : 0;
+        const ST = [
+            ['Chọn báo cáo', 'Kéo thả hoặc bấm chọn file Excel báo cáo số dư 12 COA xuất từ TABMIS.'],
+            ['Xem kết quả', 'Bấm thanh màu hoặc các tab. Số đỏ trên tab là việc cần xử lý.'],
+            ['Xử lý, lưu lại', !S.res ? 'Bấm “Cách xử lý” ở mỗi tab kết quả để xem cách làm, rồi “Xuất kết quả Excel” để lưu.' : issues ? `Còn ${fmt(issues)} việc cần xử lý. Bấm “Cách xử lý” ở mỗi tab để xem cách làm, rồi “Xuất kết quả Excel” để lưu.` : 'Không có việc cần xử lý. Có thể bấm “Xuất kết quả Excel” để lưu.']
+        ];
+        return `<ol class="kt-steps" aria-label="Các bước sử dụng">${ST.map(([t, d], i) => {
+            const n = i + 1, st = n < cur ? 'done' : (n === cur || (cur === 2 && n === 3) ? 'cur' : 'next');
+            return `<li class="kt-step is-${st}"><span class="kt-stepn" aria-hidden="true">${st === 'done' ? '✓' : n}</span><span><b>${t}</b><span class="kt-sub">${d}</span></span></li>`;
+        }).join('')}<li class="kt-stepx"><button type="button" class="kt-btn kt-btn-ghost" data-act="steps" aria-label="Ẩn gợi ý các bước">Ẩn</button></li></ol>`;
     }
     function renderSources() {
         const rep = S.report, d = dm();
@@ -859,8 +891,8 @@
             : `<div class="kt-file"><div><b>Chưa có bộ TLPC</b><span class="kt-sub">Tải lên file TLPC (sheet “DanhMuc”) để đối chiếu.</span></div>
                 <div class="kt-acts"><a class="kt-btn" href="${DEFAULT_TLPC_URL}" download="${DEFAULT_TLPC_NAME}">Tải TLPC mặc định</a><label class="kt-btn">Tải lên bộ TLPC<input type="file" accept=".xlsx,.xls" data-in="tlpc" hidden></label></div></div>`;
         return `<div class="kt-src">
-            <section class="kt-srcb"><h4>Báo cáo số dư</h4>${repBox}${S.reportErr ? `<p class="kt-err" role="alert">${esc(S.reportErr)}</p>` : ''}</section>
-            <section class="kt-srcb"><h4>Bộ tỉ lệ phân chia</h4>${dmBox}${S.dmErr ? `<p class="kt-err" role="alert">${esc(S.dmErr)}</p>` : ''}</section>
+            <section class="kt-srcb"><h4>Báo cáo số dư ${hint('report', 'báo cáo số dư')}</h4>${repBox}${S.reportErr ? `<p class="kt-err" role="alert">${esc(S.reportErr)}</p>` : ''}</section>
+            <section class="kt-srcb"><h4>Bộ tỉ lệ phân chia ${hint('tlpc', 'bộ tỉ lệ phân chia')}</h4>${dmBox}${S.dmErr ? `<p class="kt-err" role="alert">${esc(S.dmErr)}</p>` : ''}</section>
         </div>`;
     }
     function renderBalance() {
@@ -875,7 +907,7 @@
         const allOk = !r.lech.length && !r.nf.length;
         return `<div class="kt-bal">
             <div class="kt-baltop">
-                <p class="kt-verdict">${allOk ? `${fmt(r.tongNhom)} nhóm thu đều có quy định và không lệch tỉ lệ${r.xacnhan.length ? `, ${fmt(r.xacnhan.length)} nhóm cần xác nhận` : ''}` : `${fmt(r.lech.length + r.nf.length)} trên ${fmt(r.tongNhom)} nhóm thu cần xử lý`}</p>
+                <p class="kt-verdict">${hint('bal', 'thanh tổng hợp')} ${allOk ? `${fmt(r.tongNhom)} nhóm thu đều có quy định và không lệch tỉ lệ${r.xacnhan.length ? `, ${fmt(r.xacnhan.length)} nhóm cần xác nhận` : ''}` : `${fmt(r.lech.length + r.nf.length)} trên ${fmt(r.tongNhom)} nhóm thu cần xử lý`}</p>
                 <p class="kt-sub">Tổng phát sinh có TK ${FIXED.tkThu.join(', ')}: <b class="kt-num">${fmt(r.tongTien)}</b> đồng</p>
             </div>
             <div class="kt-bar" role="group" aria-label="Phân bố kết quả">${bar}</div>
@@ -933,13 +965,13 @@
         if (!S.unlocked) body = renderLock();
         else if (S.booting || !S.C) body = `<div class="kt-loading">Đang tải dữ liệu tra cứu…</div>${S.bootErr ? `<p class="kt-err">${esc(S.bootErr)}</p>` : ''}`;
         else {
-            body = `${S.bootErr ? `<p class="kt-err" role="alert">${esc(S.bootErr)}</p>` : ''}${renderSources()}`;
+            body = `${S.bootErr ? `<p class="kt-err" role="alert">${esc(S.bootErr)}</p>` : ''}${renderSteps()}${renderSources()}`;
             if (S.busy) body += `<div class="kt-loading">${esc(S.busy)}</div>`;
             else if (S.res) {
                 body += renderBalance() + renderTabs() + `<div class="kt-tools">
                     <input id="kt-q" type="search" placeholder="Lọc theo NDKT, chương, ĐBHC, đơn vị…" value="${esc(S.q)}" aria-label="Lọc kết quả" autocomplete="off" spellcheck="false">
                     <button type="button" class="kt-btn" data-act="export">Xuất kết quả Excel</button></div>
-                    ${NOTE[S.tab] ? `<p class="kt-lead">${NOTE[S.tab]}</p>` : ''}
+                    <div class="kt-tiprow">${NOTE[S.tab] ? `<p class="kt-lead">${NOTE[S.tab]}</p>` : ''}${hint(S.tab, 'cách xử lý tab này', S.tab === 'dung' || S.tab === 'gtgc' ? 'Giải thích' : 'Cách xử lý')}</div>
                     <div class="kt-view">${renderView()}</div>`;
             } else if (S.report && !dm()) body += `<p class="kt-lead">Tải lên bộ TLPC để bắt đầu đối chiếu.</p>`;
             body += renderSettings();
@@ -985,14 +1017,19 @@
         });
         root.addEventListener('click', e => {
             const t = e.target.closest('[data-tab]');
-            if (t) { S.tab = t.dataset.tab; render(); return; }
+            if (t) { S.tab = t.dataset.tab; S.hintOpen = null; render(); return; }
+            const h = e.target.closest('[data-hint]');
+            if (h) { S.hintOpen = S.hintOpen === h.dataset.hint ? null : h.dataset.hint; render(); const b = root.querySelector(`[data-hint="${h.dataset.hint}"]`); if (b) b.focus(); return; }
+            if (S.hintOpen && !e.target.closest('.kt-pop')) { S.hintOpen = null; render(); }
             const a = e.target.closest('[data-act]'); if (!a) return;
             const act = a.dataset.act;
             if (act === 'export') exportResult();
             else if (act === 'reset') resetTLPC();
             else if (act === 'lock') { S.unlocked = false; render(); }
+            else if (act === 'steps') { S.hideSteps = !S.hideSteps; render(); }
         });
         root.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && S.hintOpen) { const k = S.hintOpen; S.hintOpen = null; render(); const b = root.querySelector(`[data-hint="${k}"]`); if (b) b.focus(); return; }
             if (!e.target.classList || !e.target.classList.contains('kt-tab')) return;
             if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
             const tabs = [...root.querySelectorAll('.kt-tab')];
